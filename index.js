@@ -66,7 +66,34 @@ class Player {
   }
 }
 
+class Projectiles {
+  constructor(position, velocity) {
+    this.position = position;
+    this.velocity = velocity;
+
+    this.radius = 3;
+    // this.color = "white";
+    // this.width = 5;
+    // this.height = 5;
+  }
+
+  draw() {
+    c.beginPath();
+    c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2);
+    c.fillStyle = "red";
+    c.fill();
+    c.closePath();
+  }
+
+  update() {
+    this.draw();
+    this.position.x += this.velocity.x;
+    this.position.y += this.velocity.y;
+  }
+}
+
 const player = new Player();
+const projectiles = [];
 const key = {
   a: {
     pressed: false,
@@ -102,6 +129,20 @@ function animation() {
   c.fillStyle = "black";
   c.fillRect(0, 0, canvas.width, canvas.height);
   player.move();
+
+  projectiles.forEach((projectile, index) => {
+    projectile.update();
+    if (
+      projectile.position.x + projectile.radius < 0 ||
+      projectile.position.x - projectile.radius > canvas.width ||
+      projectile.position.y + projectile.radius < 0 ||
+      projectile.position.y - projectile.radius > canvas.height
+    ) {
+      setTimeout(() => {
+        projectiles.splice(index, 1);
+      }, 0);
+    }
+  });
 
   if ((key.ArrowLeft.pressed || key.a.pressed) && player.position.x > 0) {
     player.velocity.x = -player.speed;
@@ -154,6 +195,22 @@ addEventListener("keydown", ({ key: keyPressed }) => {
     case "ArrowDown":
       key.s.pressed = true;
       key.ArrowDown.pressed = true;
+      break;
+
+    case " ":
+      console.log(projectiles);
+      projectiles.push(
+        new Projectiles(
+          {
+            x: player.position.x + player.width / 2,
+            y: player.position.y,
+          },
+          {
+            x: 0,
+            y: -5,
+          }
+        )
+      );
       break;
   }
 });
