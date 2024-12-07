@@ -249,8 +249,13 @@ function animation() {
             if (invaderFound) {
               console.log('found')
             }
-            grid.invaders.splice(invaderIndex, 1)
-            projectiles.splice(index, 1)
+            if (
+              grid.invaders.includes(invader) &&
+              projectiles.includes(projectile)
+            ) {
+              grid.invaders.splice(invaderIndex, 1)
+              projectiles.splice(index, 1)
+            }
 
             // update the width of the invaders grid to make sure we are not drawing the grid outside the canvas or bouncing before reaching the end of the window
             if (grid.invaders.length > 0) {
