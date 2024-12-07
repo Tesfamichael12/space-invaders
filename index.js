@@ -93,7 +93,7 @@ class Projectiles {
 }
 
 class Invader {
-  constructor(position) {
+  constructor({ position }) {
     this.velocity = {
       x: 0,
       y: 0
@@ -107,8 +107,8 @@ class Invader {
       this.width = image.width * scale
       this.height = image.height * scale
       this.position = {
-        x: canvas.width / 2 - this.width / 2,
-        y: canvas.height / 2 - this.height / 2
+        x: position.x,
+        y: position.y
       }
     }
   }
@@ -125,18 +125,70 @@ class Invader {
     }
   }
 
-  update() {
+  update({ velocity }) {
     if (this.image) {
       this.draw()
-      this.position.x += this.velocity.x
-      this.position.y += this.velocity.y
+      this.position.x += velocity.x
+      this.position.y += velocity.y
+    }
+  }
+}
+
+class Grid {
+  constructor() {
+    this.position = {
+      x: 0,
+      y: 0
+    }
+
+    this.velocity = {
+      x: 3,
+      y: 0
+    }
+
+    this.invaders = []
+
+    const columns = Math.floor(Math.random() * 10 + 5)
+    const rows = Math.floor(Math.random() * 5 + 2)
+
+    this.width = columns * 30
+    this.height = rows * 30
+
+    for (let x = 0; x < columns; x++) {
+      for (let y = 0; y < rows; y++) {
+        this.invaders.push(
+          new Invader({
+            position: {
+              x: x * 30,
+              y: y * 30
+            }
+          })
+        )
+      }
+    }
+  }
+
+  update() {
+    this.position.x += this.velocity.x
+    this.position.y += this.velocity.y
+
+    this.velocity.y = 0 // every fram reset the y velocity to 0 and then add 30 the height of one invader
+
+    if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
+      this.velocity.x = -this.velocity.x
+      this.velocity.y = 30
+    }
+
+    if (this.position.y + this.height >= canvas.height) {
+      this.velocity.y = 0
     }
   }
 }
 
 const player = new Player()
 const projectiles = []
-const invaders = new Invader()
+const invaders = new Invader({ position: { x: 0, y: 0 } })
+const grid = new Grid()
 const key = {
   a: {
     pressed: false
@@ -172,7 +224,11 @@ function animation() {
   c.fillStyle = 'black'
   c.fillRect(0, 0, canvas.width, canvas.height)
   player.move()
-  invaders.update()
+
+  grid.update()
+  grid.invaders.forEach((invader) => {
+    invader.update({ velocity: grid.velocity })
+  })
 
   projectiles.forEach((projectile, index) => {
     projectile.update()
@@ -218,7 +274,6 @@ function animation() {
 animation()
 
 addEventListener('keydown', ({ key: keyPressed }) => {
-  console.log(keyPressed)
   switch (keyPressed) {
     case 'a':
     case 'ArrowLeft':
@@ -242,7 +297,6 @@ addEventListener('keydown', ({ key: keyPressed }) => {
       break
 
     case ' ':
-      console.log(projectiles)
       projectiles.push(
         new Projectiles(
           {
