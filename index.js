@@ -11,7 +11,7 @@ class Player {
       x: 0,
       y: 0
     }
-    this.speed = 3
+    this.speed = 5
 
     this.rotate = 0
 
@@ -71,7 +71,7 @@ class Projectiles {
     this.position = position
     this.velocity = velocity
 
-    this.radius = 3
+    this.radius = 4
     // this.color = "white";
     // this.width = 5;
     // this.height = 5;
@@ -178,10 +178,6 @@ class Grid {
       this.velocity.x = -this.velocity.x
       this.velocity.y = 30
     }
-
-    if (this.position.y + this.height >= canvas.height) {
-      this.velocity.y = 0
-    }
   }
 }
 
@@ -228,10 +224,50 @@ function animation() {
   c.fillRect(0, 0, canvas.width, canvas.height)
   player.move()
 
-  grids.forEach((grid) => {
+  grids.forEach((grid, gridIndex) => {
     grid.update()
     grid.invaders.forEach((invader) => {
       invader.update({ velocity: grid.velocity })
+    })
+
+    projectiles.forEach((projectile, index) => {
+      grid.invaders.forEach((invader, invaderIndex) => {
+        if (
+          // if our projectiles top position is less than the position of the invaders bottom position
+          // there is a collision so we want to remove the projectile and the invader
+          projectile.position.y - projectile.radius <=
+            invader.position.y + invader.height &&
+          projectile.position.x + projectile.radius >= invader.position.x &&
+          projectile.position.x - projectile.radius <=
+            invader.position.x + invader.width &&
+          projectile.position.y + projectile.radius >= invader.position.y
+        ) {
+          setTimeout(() => {
+            const invaderFound = grid.invaders.find(
+              (invader2) => invader2 === invader
+            )
+            if (invaderFound) {
+              console.log('found')
+            }
+            grid.invaders.splice(invaderIndex, 1)
+            projectiles.splice(index, 1)
+
+            // update the width of the invaders grid to make sure we are not drawing the grid outside the canvas or bouncing before reaching the end of the window
+            if (grid.invaders.length > 0) {
+              const firstInvader = grid.invaders[0]
+              const lastInvader = grid.invaders[grid.invaders.length - 1]
+
+              grid.width =
+                lastInvader.position.x -
+                firstInvader.position.x +
+                lastInvader.width
+              grid.position.x = firstInvader.position.x
+            } else {
+              grids.splice(gridIndex, 1)
+            }
+          }, 0)
+        }
+      })
     })
   })
 
@@ -318,7 +354,7 @@ addEventListener('keydown', ({ key: keyPressed }) => {
           },
           {
             x: 0,
-            y: -5
+            y: -10
           }
         )
       )
