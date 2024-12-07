@@ -92,6 +92,27 @@ class Projectiles {
   }
 }
 
+class InvaderProjectile {
+  constructor({ position, velocity }) {
+    this.position = position
+    this.velocity = velocity
+
+    this.width = 3
+    this.height = 10
+  }
+
+  draw() {
+    c.fillStyle = 'white'
+    c.fillRect(this.position.x, this.position.y, this.width, this.height)
+  }
+
+  update() {
+    this.draw()
+    this.position.x += this.velocity.x
+    this.position.y += this.velocity.y
+  }
+}
+
 class Invader {
   constructor({ position }) {
     this.velocity = {
@@ -131,6 +152,21 @@ class Invader {
       this.position.x += velocity.x
       this.position.y += velocity.y
     }
+  }
+
+  shoot(invaderProjectile) {
+    invaderProjectile.push(
+      new InvaderProjectile({
+        position: {
+          x: this.position.x + this.width / 2,
+          y: this.position.y + this.height
+        },
+        velocity: {
+          x: 0,
+          y: 5
+        }
+      })
+    )
   }
 }
 
@@ -185,6 +221,8 @@ const player = new Player()
 const projectiles = []
 const invaders = new Invader({ position: { x: 0, y: 0 } })
 const grids = []
+const invaderProjectiles = []
+
 const key = {
   a: {
     pressed: false
@@ -224,8 +262,34 @@ function animation() {
   c.fillRect(0, 0, canvas.width, canvas.height)
   player.move()
 
+  invaderProjectiles.forEach((invaderProjectile, index) => {
+    if (invaderProjectile.position.y > canvas.height) {
+      invaderProjectiles.splice(index, 1)
+    } else invaderProjectile.update()
+
+    if (
+      rectangularCollision({
+        rectangle1: invaderProjectile,
+        rectangle2: player
+      })
+    ) {
+      setTimeout(() => {
+        invaderProjectiles.splice(index, 1)
+        endGame()
+      }, 0)
+    }
+  })
+
   grids.forEach((grid, gridIndex) => {
     grid.update()
+
+    // spawn projectiles
+    if (frames % 100 === 0 && grid.invaders.length > 0) {
+      grid.invaders[Math.floor(Math.random() * grid.invaders.length)].shoot(
+        invaderProjectiles
+      )
+    }
+
     grid.invaders.forEach((invader) => {
       invader.update({ velocity: grid.velocity })
     })
@@ -316,12 +380,13 @@ function animation() {
     player.velocity.y = 0
   }
 
-  console.log(frames)
+  // spawn enemies
   if (frames % randomInterval === 0) {
     grids.push(new Grid())
     randomInterval = Math.floor(Math.random() * 500) + 500
     frames = 0
   }
+
   frames++
 }
 
@@ -391,3 +456,15 @@ addEventListener('keyup', ({ key: keyPressed }) => {
       break
   }
 })
+function rectangularCollision({ rectangle1, rectangle2 }) {
+  return (
+    rectangle1.position.y + rectangle1.height >= rectangle2.position.y &&
+    rectangle1.position.x + rectangle1.width >= rectangle2.position.x &&
+    rectangle1.position.x <= rectangle2.position.x + rectangle2.width &&
+    rectangle1.position.y <= rectangle2.position.y + rectangle2.height
+  )
+}
+
+function endGame() {
+  console.log('You have lost')
+}
