@@ -14,6 +14,7 @@ class Player {
     this.speed = 5
 
     this.rotate = 0
+    this.opacity = 1
 
     const image = new Image()
     image.src = './images/spaceship.png'
@@ -34,6 +35,7 @@ class Player {
     // c.fillRect(this.position.x, this.position.y, this.width, this.height);
 
     c.save()
+    c.globalAlpha = this.opacity
     c.translate(
       this.position.x + this.width / 2,
       this.position.y + this.height / 2
@@ -288,6 +290,11 @@ const key = {
 let frames = 0
 let randomInterval = Math.floor(Math.random() * 500) + 500
 
+let game = {
+  isOver: false,
+  active: true
+}
+
 // create stars
 for (let i = 0; i < 100; i++) {
   particles.push(
@@ -327,6 +334,8 @@ function createExplosion({ position, color, particleCount }) {
 }
 
 function animation() {
+  if (!game.active) return
+
   requestAnimationFrame(animation)
   c.fillStyle = 'black'
   c.fillRect(0, 0, canvas.width, canvas.height)
@@ -364,6 +373,9 @@ function animation() {
     ) {
       setTimeout(() => {
         invaderProjectiles.splice(index, 1)
+        player.opacity = 0
+        game.isOver = true
+
         // create explosion
         createExplosion({
           position: {
@@ -375,6 +387,9 @@ function animation() {
         })
         endGame()
       }, 0)
+      setTimeout(() => {
+        game.active = false
+      }, 2000)
     }
   })
 
@@ -504,6 +519,8 @@ function animation() {
 animation()
 
 addEventListener('keydown', ({ key: keyPressed }) => {
+  if (game.isOver) return
+
   switch (keyPressed) {
     case 'a':
     case 'ArrowLeft':
@@ -544,6 +561,8 @@ addEventListener('keydown', ({ key: keyPressed }) => {
 })
 
 addEventListener('keyup', ({ key: keyPressed }) => {
+  if (game.isOver) return
+
   switch (keyPressed) {
     case 'a':
     case 'ArrowLeft':
