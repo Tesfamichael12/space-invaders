@@ -1,3 +1,4 @@
+const score = document.querySelector('#scoreEl')
 const canvas = document.querySelector('canvas')
 const c = canvas.getContext('2d')
 
@@ -187,8 +188,8 @@ class Invader {
     }
   }
 
-  shoot(invaderProjectile) {
-    invaderProjectile.push(
+  shoot(invaderProjectiles) {
+    invaderProjectiles.push(
       new InvaderProjectile({
         position: {
           x: this.position.x + this.width / 2,
@@ -427,7 +428,9 @@ function animation() {
             const projectileFound = projectiles.find(
               (projectile2) => projectile2 === projectile
             )
+            // Remove the invader and the projectile
             if (invaderFound && projectileFound) {
+              score.innerText = parseInt(score.innerText) + 100
               // create explosion
               createExplosion({
                 position: {
