@@ -1,4 +1,5 @@
-const score = document.querySelector('#scoreEl')
+let score = 0
+const scoreEl = document.querySelector('#scoreEl')
 const canvas = document.querySelector('canvas')
 const c = canvas.getContext('2d')
 
@@ -189,6 +190,7 @@ class Invader {
   }
 
   shoot(invaderProjectiles) {
+    audio.enemyShoot.play()
     invaderProjectiles.push(
       new InvaderProjectile({
         position: {
@@ -251,14 +253,14 @@ class Grid {
   }
 }
 
-const player = new Player()
-const projectiles = []
-const invaders = new Invader({ position: { x: 0, y: 0 } })
-const grids = []
-const invaderProjectiles = []
-const particles = []
+let player = new Player()
+let projectiles = []
+let invaders = new Invader({ position: { x: 0, y: 0 } })
+let grids = []
+let invaderProjectiles = []
+let particles = []
 
-const key = {
+let key = {
   a: {
     pressed: false
   },
@@ -288,6 +290,74 @@ const key = {
   }
 }
 
+function init() {
+  player = new Player()
+  projectiles = []
+  invaders = new Invader({ position: { x: 0, y: 0 } })
+  grids = []
+  invaderProjectiles = []
+  particles = []
+
+  key = {
+    a: {
+      pressed: false
+    },
+    d: {
+      pressed: false
+    },
+    w: {
+      pressed: false
+    },
+    s: {
+      pressed: false
+    },
+    space: {
+      pressed: false
+    },
+    ArrowLeft: {
+      pressed: false
+    },
+    ArrowRight: {
+      pressed: false
+    },
+    ArrowUp: {
+      pressed: false
+    },
+    ArrowDown: {
+      pressed: false
+    }
+  }
+
+  frames = 0
+  randomInterval = Math.floor(Math.random() * 500) + 500
+
+  game = {
+    isOver: false,
+    active: true
+  }
+  score = 0
+  document.querySelector('#finalScore').innerHTML = score
+  document.querySelector('#scoreEl').innerHTML = score
+
+  // create stars
+  for (let i = 0; i < 100; i++) {
+    particles.push(
+      new Particle({
+        position: {
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height
+        },
+        velocity: {
+          x: 0,
+          y: Math.random() * 0.1 + 0.2
+        },
+        radius: Math.random() * 1.5,
+        color: 'white'
+      })
+    )
+  }
+}
+
 let frames = 0
 let randomInterval = Math.floor(Math.random() * 500) + 500
 
@@ -314,7 +384,18 @@ for (let i = 0; i < 100; i++) {
   )
 }
 
+function rectangularCollision({ rectangle1, rectangle2 }) {
+  return (
+    rectangle1.position.y + rectangle1.height >= rectangle2.position.y &&
+    rectangle1.position.x + rectangle1.width >= rectangle2.position.x &&
+    rectangle1.position.x <= rectangle2.position.x + rectangle2.width &&
+    rectangle1.position.y <= rectangle2.position.y + rectangle2.height
+  )
+}
+
 function createExplosion({ position, color, particleCount }) {
+  audio.explode.play()
+
   for (let i = 0; i < particleCount; i++) {
     particles.push(
       new Particle({
@@ -332,6 +413,33 @@ function createExplosion({ position, color, particleCount }) {
       })
     )
   }
+}
+
+function endGame() {
+  console.log('you lose')
+  audio.gameOver.play()
+
+  // Makes player disappear
+  setTimeout(() => {
+    player.opacity = 0
+    game.over = true
+  }, 0)
+
+  // stops game altogether
+  setTimeout(() => {
+    game.active = false
+    document.querySelector('#restartScreen').style.display = 'flex'
+    document.querySelector('#finalScore').innerHTML = score
+  }, 2000)
+
+  createExplosion({
+    position: {
+      x: player.position.x + player.width / 2,
+      y: player.position.y + player.height / 2
+    },
+    color: 'white',
+    particleCount: 15
+  })
 }
 
 function animation() {
@@ -366,6 +474,7 @@ function animation() {
       invaderProjectiles.splice(index, 1)
     } else invaderProjectile.update()
 
+    // remove player if invaders touch it
     if (
       rectangularCollision({
         rectangle1: invaderProjectile,
@@ -376,6 +485,7 @@ function animation() {
         invaderProjectiles.splice(index, 1)
         player.opacity = 0
         game.isOver = true
+        endGame()
 
         // create explosion
         createExplosion({
@@ -386,7 +496,6 @@ function animation() {
           color: 'white',
           particleCount: 15
         })
-        endGame()
       }, 0)
       setTimeout(() => {
         game.active = false
@@ -430,7 +539,8 @@ function animation() {
             )
             // Remove the invader and the projectile
             if (invaderFound && projectileFound) {
-              score.innerText = parseInt(score.innerText) + 100
+              score += 100
+              scoreEl.innerHTML = score
               // create explosion
               createExplosion({
                 position: {
@@ -519,7 +629,45 @@ function animation() {
   frames++
 }
 
-animation()
+document.addEventListener(
+  'click',
+  () => {
+    const context = Howler.ctx
+    if (context.state === 'suspended') {
+      context.resume()
+    }
+  },
+  { once: true }
+)
+
+document.querySelector('#startButton').addEventListener('click', () => {
+  const context = Howler.ctx
+  if (context.state === 'suspended') {
+    context.resume().then(() => {
+      try {
+        audio.backgroundMusic.play()
+      } catch (error) {
+        console.error('Error playing background music:', error)
+      }
+      audio.start.play()
+    })
+  } else {
+    audio.backgroundMusic.play()
+    audio.start.play()
+  }
+
+  document.querySelector('#startScreen').style.display = 'none'
+  document.querySelector('#scoreContainer').style.display = 'block'
+  init()
+  animation()
+})
+
+document.querySelector('#restartButton').addEventListener('click', () => {
+  audio.select.play()
+  document.querySelector('#restartScreen').style.display = 'none'
+  init()
+  animation()
+})
 
 addEventListener('keydown', ({ key: keyPressed }) => {
   if (game.isOver) return
@@ -547,6 +695,8 @@ addEventListener('keydown', ({ key: keyPressed }) => {
       break
 
     case ' ':
+      audio.shoot.play()
+
       projectiles.push(
         new Projectiles(
           {
@@ -589,15 +739,3 @@ addEventListener('keyup', ({ key: keyPressed }) => {
       break
   }
 })
-function rectangularCollision({ rectangle1, rectangle2 }) {
-  return (
-    rectangle1.position.y + rectangle1.height >= rectangle2.position.y &&
-    rectangle1.position.x + rectangle1.width >= rectangle2.position.x &&
-    rectangle1.position.x <= rectangle2.position.x + rectangle2.width &&
-    rectangle1.position.y <= rectangle2.position.y + rectangle2.height
-  )
-}
-
-function endGame() {
-  console.log('You have lost')
-}
