@@ -92,6 +92,37 @@ class Projectiles {
   }
 }
 
+class Particle {
+  constructor({ position, velocity, radius, color, fades }) {
+    this.position = position
+    this.velocity = velocity
+
+    this.radius = radius
+    this.color = color
+    this.opacity = 1
+    this.fades = fades
+  }
+
+  draw() {
+    c.save()
+    c.globalAlpha = this.opacity
+    c.beginPath()
+    c.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2)
+    c.fillStyle = this.color
+    c.fill()
+    c.closePath()
+    c.restore()
+  }
+
+  update() {
+    this.draw()
+    this.position.x += this.velocity.x
+    this.position.y += this.velocity.y
+
+    if (this.fades) this.opacity -= 0.01
+  }
+}
+
 class InvaderProjectile {
   constructor({ position, velocity }) {
     this.position = position
@@ -222,6 +253,7 @@ const projectiles = []
 const invaders = new Invader({ position: { x: 0, y: 0 } })
 const grids = []
 const invaderProjectiles = []
+const particles = []
 
 const key = {
   a: {
@@ -256,11 +288,45 @@ const key = {
 let frames = 0
 let randomInterval = Math.floor(Math.random() * 500) + 500
 
+function createExplosion({ position, color, particleCount }) {
+  for (let i = 0; i < particleCount; i++) {
+    particles.push(
+      new Particle({
+        position: {
+          x: position.x,
+          y: position.y
+        },
+        velocity: {
+          x: (Math.random() - 0.5) * 1,
+          y: (Math.random() - 0.5) * 1
+        },
+        radius: Math.random() * 3,
+        color: color,
+        fades: true
+      })
+    )
+  }
+}
+
 function animation() {
   requestAnimationFrame(animation)
   c.fillStyle = 'black'
   c.fillRect(0, 0, canvas.width, canvas.height)
   player.move()
+
+  particles.forEach((particle, particleIndex) => {
+    if (particle.opacity <= 0) {
+      setTimeout(() => {
+        particles.splice(particleIndex, 1)
+      }, 0)
+    } else {
+      particle.update()
+    }
+  })
+
+  particles.forEach((particle) => {
+    particle.update()
+  })
 
   invaderProjectiles.forEach((invaderProjectile, index) => {
     if (invaderProjectile.position.y > canvas.height) {
@@ -275,6 +341,15 @@ function animation() {
     ) {
       setTimeout(() => {
         invaderProjectiles.splice(index, 1)
+        // create explosion
+        createExplosion({
+          position: {
+            x: player.position.x + player.width / 2,
+            y: player.position.y + player.height / 2
+          },
+          color: 'white',
+          particleCount: 15
+        })
         endGame()
       }, 0)
     }
@@ -294,6 +369,7 @@ function animation() {
       invader.update({ velocity: grid.velocity })
     })
 
+    // check for collision between projectiles and invaders
     projectiles.forEach((projectile, index) => {
       grid.invaders.forEach((invader, invaderIndex) => {
         if (
@@ -310,9 +386,21 @@ function animation() {
             const invaderFound = grid.invaders.find(
               (invader2) => invader2 === invader
             )
-            if (invaderFound) {
-              console.log('found')
+            const projectileFound = projectiles.find(
+              (projectile2) => projectile2 === projectile
+            )
+            if (invaderFound && projectileFound) {
+              // create explosion
+              createExplosion({
+                position: {
+                  x: invader.position.x + invader.width / 2,
+                  y: invader.position.y + invader.height / 2
+                },
+                color: '#BAA0DE',
+                particleCount: 15
+              })
             }
+
             if (
               grid.invaders.includes(invader) &&
               projectiles.includes(projectile)
