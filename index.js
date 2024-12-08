@@ -393,6 +393,41 @@ function rectangularCollision({ rectangle1, rectangle2 }) {
   )
 }
 
+function checkPlayerInvaderCollision() {
+  // Check for collision between player and invaders
+  grids.forEach((grid) => {
+    grid.invaders.forEach((invader) => {
+      if (game.isOver) return
+
+      if (
+        rectangularCollision({
+          rectangle1: player,
+          rectangle2: invader
+        })
+      ) {
+        setTimeout(() => {
+          player.opacity = 0
+          game.isOver = true
+          endGame()
+
+          // create explosion
+          createExplosion({
+            position: {
+              x: player.position.x + player.width / 2,
+              y: player.position.y + player.height / 2
+            },
+            color: 'white',
+            particleCount: 15
+          })
+        }, 0)
+        setTimeout(() => {
+          game.active = false
+        }, 2000)
+      }
+    })
+  })
+}
+
 function createExplosion({ position, color, particleCount }) {
   audio.explode.play()
 
@@ -475,6 +510,7 @@ function animation() {
     } else invaderProjectile.update()
 
     // remove player if invaders touch it
+    checkPlayerInvaderCollision()
     if (
       rectangularCollision({
         rectangle1: invaderProjectile,
