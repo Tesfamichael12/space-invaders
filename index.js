@@ -133,7 +133,7 @@ class InvaderProjectile {
   }
 
   draw() {
-    c.fillStyle = 'white'
+    c.fillStyle = '#FF00FF'
     c.fillRect(this.position.x, this.position.y, this.width, this.height)
   }
 
@@ -242,7 +242,7 @@ class Grid {
     this.velocity.y = 0 // every fram reset the y velocity to 0 and then add 30 the height of one invader
 
     if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
-      this.velocity.x = -this.velocity.x
+      this.velocity.x = -this.velocity.x * 1.025
       this.velocity.y = 30
     }
   }
@@ -288,6 +288,24 @@ const key = {
 let frames = 0
 let randomInterval = Math.floor(Math.random() * 500) + 500
 
+// create stars
+for (let i = 0; i < 100; i++) {
+  particles.push(
+    new Particle({
+      position: {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height
+      },
+      velocity: {
+        x: 0,
+        y: Math.random() * 0.1 + 0.2
+      },
+      radius: Math.random() * 1.5,
+      color: 'white'
+    })
+  )
+}
+
 function createExplosion({ position, color, particleCount }) {
   for (let i = 0; i < particleCount; i++) {
     particles.push(
@@ -315,6 +333,11 @@ function animation() {
   player.move()
 
   particles.forEach((particle, particleIndex) => {
+    if (particle.position.y - particle.radius > canvas.height) {
+      particle.position.x = Math.random() * canvas.width
+      particle.position.y = -particle.radius
+    }
+
     if (particle.opacity <= 0) {
       setTimeout(() => {
         particles.splice(particleIndex, 1)
