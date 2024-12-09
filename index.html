@@ -24,7 +24,6 @@
     <!-- Howler.js (audio handling library) -->
     <!-- Import the CDN (content display network) of Howler.js a library used for handeling audio files in our js files -->
     <script
-    
       src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"
       integrity="sha512-H6cPm97FAsgIKmlBA4s774vqoN24V5gSQL4yBTDOY2su2DeXZVhQPxFK4P6GPdnZqM9fg1G3cMv5wD7e6cFLZQ=="
       crossorigin="anonymous"
@@ -39,7 +38,7 @@
   </head>
   <body>
     <div style="position: relative">
-      <p id="scoreContainer">
+      <p id="scoreContainer"></p>
         <span>Score: </span> <span id="scoreEl">0</span>
       </p>
 
@@ -52,9 +51,21 @@
 
           <!-- button -->
           <div id="startButton" class="button-container">
-        <img src="./images/button.png" alt="Start Button" />
-        <span class="button-label">Start</span>
+            <img src="./images/button.png" alt="Start Button" />
+            <span class="button-label">Start</span>
           </div>
+
+            <!-- controls -->
+            <div class="controls-container">
+              <div class="controls cool-controls">
+              <h3 class="controls-title">Controls</h3>
+              <p class="control-item">A / <span>&#8592;</span> - Move Left</p>
+              <p class="control-item">W / <span>&#8593;</span> - Move Up</p>
+              <p class="control-item">D / <span>&#8594;</span> - Move Right</p>
+              <p class="control-item">S / <span>&#8595;</span> - Move Down</p>
+              <p class="control-item">Space / <span style="display: inline-block; font-size: 50px; margin-top: -30px">&#9251;</span> - Shoot</p>
+              </div>
+            </div>
         </div>
       </div>
 
@@ -68,15 +79,13 @@
 
           <!-- button -->
           <div id="restartButton" class="button-container">
-        <img src="./images/button.png" alt="Restart Button" />
-        <span class="button-label">Restart</span>
+            <img src="./images/button.png" alt="Restart Button" />
+            <span class="button-label">Restart</span>
           </div>
         </div>
       </div>
-        </div>
-      </div>
-      <script type="module" src="index.js"></script>
-      <script type="module" src="audio.js"></script>
     </div>
+    <script type="module" src="index.js"></script>
+    <script type="module" src="audio.js"></script>
   </body>
 </html>
