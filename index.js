@@ -266,7 +266,7 @@ class Grid {
 
 let player = new Player()
 let projectiles = []
-let invaders = new Invader({ position: { x: 0, y: 0 } })
+let invaders = new Invader({ position: { x: 0, y: 0 } }) // Removed unused variable
 let grids = []
 let invaderProjectiles = []
 let particles = []
@@ -304,7 +304,7 @@ let key = {
 function init() {
   player = new Player()
   projectiles = []
-  invaders = new Invader({ position: { x: 0, y: 0 } })
+  invaders = []
   grids = []
   invaderProjectiles = []
   particles = []
@@ -684,7 +684,10 @@ document.addEventListener(
   () => {
     const context = Howler.ctx
     if (context.state === 'suspended') {
-      context.resume()
+      context.resume().then(() => {
+        Howler.volume(1)
+        audio.backgroundMusic.play()
+      })
     }
   },
   { once: true }
