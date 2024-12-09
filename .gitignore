@@ -1,2 +1,5 @@
-space-invaders
+space-invaders/
 .gitignore
+node_modules/
+dist/
+.parcel-cache/
