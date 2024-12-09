@@ -1,3 +1,7 @@
+import audio from './audio.js'
+import spaceshipImage from './images/spaceship.png'
+import invaderImage from './images/invader.png'
+
 let score = 0
 const scoreEl = document.querySelector('#scoreEl')
 const canvas = document.querySelector('canvas')
@@ -13,13 +17,17 @@ class Player {
       x: 0,
       y: 0
     }
+    this.position = {
+      x: canvas.width / 2,
+      y: canvas.height - 50
+    }
     this.speed = 5
 
     this.rotate = 0
     this.opacity = 1
 
     const image = new Image()
-    image.src = './images/spaceship.png'
+    image.src = spaceshipImage
     image.onload = () => {
       const scale = 0.12
       this.image = image
@@ -129,7 +137,7 @@ class Particle {
 
 class InvaderProjectile {
   constructor({ position, velocity }) {
-    this.position = position
+    this.position = position || { x: 0, y: 0 }
     this.velocity = velocity
 
     this.width = 3
@@ -156,16 +164,16 @@ class Invader {
     }
 
     const image = new Image()
-    image.src = './images/invader.png'
+    image.src = invaderImage
+    this.position = {
+      x: position.x,
+      y: position.y
+    }
     image.onload = () => {
       const scale = 1
       this.image = image
       this.width = image.width * scale
       this.height = image.height * scale
-      this.position = {
-        x: position.x,
-        y: position.y
-      }
     }
   }
 
@@ -190,7 +198,10 @@ class Invader {
   }
 
   shoot(invaderProjectiles) {
-    audio.enemyShoot.play()
+    // Ensure audio object is defined or remove this line if not necessary
+    if (typeof audio !== 'undefined' && audio.enemyShoot) {
+      audio.enemyShoot.play()
+    }
     invaderProjectiles.push(
       new InvaderProjectile({
         position: {
@@ -385,6 +396,7 @@ for (let i = 0; i < 100; i++) {
 }
 
 function rectangularCollision({ rectangle1, rectangle2 }) {
+  if (!rectangle1 || !rectangle2) return false // Prevents errors
   return (
     rectangle1.position.y + rectangle1.height >= rectangle2.position.y &&
     rectangle1.position.x + rectangle1.width >= rectangle2.position.x &&
@@ -399,30 +411,32 @@ function checkPlayerInvaderCollision() {
     grid.invaders.forEach((invader) => {
       if (game.isOver) return
 
-      if (
-        rectangularCollision({
-          rectangle1: player,
-          rectangle2: invader
-        })
-      ) {
-        setTimeout(() => {
-          player.opacity = 0
-          game.isOver = true
-          endGame()
-
-          // create explosion
-          createExplosion({
-            position: {
-              x: player.position.x + player.width / 2,
-              y: player.position.y + player.height / 2
-            },
-            color: 'white',
-            particleCount: 15
+      if (invader.position && invader.width && invader.height) {
+        if (
+          rectangularCollision({
+            rectangle1: player,
+            rectangle2: invader
           })
-        }, 0)
-        setTimeout(() => {
-          game.active = false
-        }, 2000)
+        ) {
+          setTimeout(() => {
+            player.opacity = 0
+            game.isOver = true
+            endGame()
+
+            // create explosion
+            createExplosion({
+              position: {
+                x: player.position.x + player.width / 2,
+                y: player.position.y + player.height / 2
+              },
+              color: 'white',
+              particleCount: 15
+            })
+          }, 0)
+          setTimeout(() => {
+            game.active = false
+          }, 2000)
+        }
       }
     })
   })
@@ -745,6 +759,7 @@ addEventListener('keydown', ({ key: keyPressed }) => {
           }
         )
       )
+
       break
   }
 })

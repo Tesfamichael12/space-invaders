@@ -30,3 +30,5 @@ const audio = {
     src: './audio/start.mp3'
   })
 }
+
+export default audio
