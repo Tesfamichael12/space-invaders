@@ -258,7 +258,7 @@ class Grid {
     this.velocity.y = 0 // every fram reset the y velocity to 0 and then add 30 the height of one invader
 
     if (this.position.x + this.width >= canvas.width || this.position.x <= 0) {
-      this.velocity.x = -this.velocity.x * 1.025
+      this.velocity.x = -this.velocity.x * 1.04
       this.velocity.y = 30
     }
   }
