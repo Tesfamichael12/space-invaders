@@ -150,7 +150,7 @@ By combining these components, we create a fully functional and engaging Space I
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/space-invaders.git
+   git clone https://github.com/Tesfamichael12/space-invaders.git
    ```
 2. Navigate to the project directory:
    ```bash
